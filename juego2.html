@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Nivel 2: Salto Horizontal 🐒❤️</title>
+    <style>
+        :root {
+            --pink: #ff4b6e;
+            --grass: #4caf50;
+            --sky: #e3f2fd;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            margin: 0;
+            background-color: #fff0f3;
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        header {
+            width: 100%;
+            text-align: center;
+            position: absolute;
+            top: 10px;
+        }
+
+        h1 { color: var(--pink); font-size: 1.2rem; margin: 0; }
+
+        #score-board {
+            font-size: 1.1rem;
+            color: #d63384;
+            font-weight: bold;
+        }
+
+        #game-container {
+            width: 95vw;
+            max-width: 800px;
+            height: 250px;
+            background: white;
+            position: relative;
+            overflow: hidden;
+            border: 4px solid var(--pink);
+            border-bottom: 12px solid var(--grass);
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        #player {
+            width: 70px; 
+            height: 70px;
+            position: absolute;
+            bottom: 0;
+            left: 40px;
+            background-image: url('levi.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            z-index: 10;
+        }
+
+        .obstacle {
+            width: 90px;
+            height: 90px;
+            position: absolute;
+            bottom: 0;
+            background-image: url('obstaculo.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+
+        .animate-jump {
+            animation: jump 0.6s ease-out;
+        }
+
+        @keyframes jump {
+            0% { bottom: 0; }
+            50% { bottom: 210px; }
+            100% { bottom: 0; }
+        }
+
+        /* --- PANTALLA DE GANADORA MEJORADA --- */
+        #win-screen {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: white; /* Fondo blanco para que la foto resalte */
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            text-align: center;
+            padding: 20px;
+            animation: fadeIn 0.8s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .foto-amor {
+            width: 250px; /* Tamaño de tu foto */
+            height: 250px;
+            object-fit: cover;
+            border-radius: 20px;
+            border: 5px solid var(--pink);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.5); }
+            100% { transform: scale(1); }
+        }
+
+        .mensaje-final {
+            color: var(--pink);
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 10px;
+            max-width: 80%;
+        }
+
+        .btn-final {
+            padding: 12px 30px;
+            font-size: 1.2rem;
+            background: var(--pink);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-weight: bold;
+            margin-top: 15px;
+            cursor: pointer;
+        }
+
+        .hint {
+            margin-top: 10px;
+            color: #ff8fa3;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body onclick="jump()">
+
+    <header>
+        <h1>Misión 2: ¡Esquiva al titán! 🐒❤️</h1>
+        <div id="score-board">Puntos: 0 / 7</div>
+    </header>
+
+    <div id="game-container">
+        <div id="player"></div>
+    </div>
+
+    <p class="hint">Toca en cualquier parte para saltar</p>
+
+    <div id="win-screen">
+        <img src="amor.jpg" alt="Nuestro Amor" class="foto-amor">
+        <div class="mensaje-final">¡LO LOGRASTE MI AMOR! ❤️</div>
+        <p style="color: #666;">Gracias por todo amorcito. <br>Perdón por solo tarde este pequeño detalle te prometo que vendran cosas mejoras para los dos.</p>
+        <button class="btn-final" onclick="alert('¡Eres lo mejor de mi vida! 😍')"> ¡Feliz San Valentín!</button>
+    </div>
+
+    <script>
+        const player = document.getElementById("player");
+        const container = document.getElementById("game-container");
+        const scoreBoard = document.getElementById("score-board");
+        const winScreen = document.getElementById("win-screen");
+
+        let score = 0;
+        let isGameOver = false;
+        let canJump = true;
+
+        function jump() {
+            if (isGameOver || !canJump) return;
+            canJump = false;
+            player.classList.add("animate-jump");
+            setTimeout(() => {
+                player.classList.remove("animate-jump");
+                canJump = true;
+            }, 600);
+        }
+
+        function createObstacle() {
+            if (isGameOver) return;
+
+            let obstacle = document.createElement("div");
+            obstacle.classList.add("obstacle");
+            container.appendChild(obstacle);
+
+            let containerWidth = container.offsetWidth;
+            let position = containerWidth;
+            
+            let moveTimer = setInterval(() => {
+                if (isGameOver) {
+                    clearInterval(moveTimer);
+                    return;
+                }
+
+                position -= 7; 
+                obstacle.style.left = position + "px";
+
+                let pBottom = parseInt(window.getComputedStyle(player).getPropertyValue("bottom"));
+                
+                // Colisión ajustada al tamaño del titán
+                if (position > 40 && position < 100) {
+                    if (pBottom < 60) { 
+                        isGameOver = true;
+                        alert("¡Ay! Casi lo logras... ¡Inténtalo de nuevo mi amor! ❤️");
+                        location.reload();
+                    }
+                }
+
+                if (position < -90) {
+                    clearInterval(moveTimer);
+                    container.removeChild(obstacle);
+                    score++;
+                    scoreBoard.innerHTML = "Puntos: " + score + " / 7";
+                    
+                    if (score >= 7) {
+                        isGameOver = true;
+                        winScreen.style.display = "flex";
+                    } else {
+                        setTimeout(createObstacle, Math.random() * 600 + 800);
+                    }
+                }
+            }, 10);
+        }
+
+        setTimeout(createObstacle, 1500);
+    </script>
+</body>
+</html>
